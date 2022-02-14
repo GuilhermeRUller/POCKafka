@@ -1,36 +1,58 @@
+global.config = {};
+//config selector
+switch (process.env.NODE_ENV) {
+	//DEV ENVIRONMENT
+	case 'dev':
+	case 'development':
+		config = require('./configs/config.devel');
+		break;
+	//HML ENVIRONMENT
+	case 'hml':
+	case 'homol':
+		config = require('./configs/config.homol');
+		break;
+	//PROD ENVIRONMENT
+	case 'prod':
+	case 'production':
+		config = require('./configs/config.stable');
+	default:
+		throw "Set environment ('dev', 'homol', 'prod')";
+		break;
+}
+
 const { Kafka } = require('kafkajs');
+const { SchemaRegistry }  = require("@kafkajs/confluent-schema-registry");
 
-const kafka = new Kafka({
-		// clientId: 'my-app',
-		// brokers: ['kafka1:9092', 'kafka2:9092']
-		brokers: ['localhost:9092']
-	});
+const kafka = new Kafka(config.kafka);
+const registry = new SchemaRegistry(config.schemaRegistry);
 
-const consumer = kafka.consumer({ groupId: 'my-app', rackId: '1' });
-iCount=0;
-const run = async () => {
+const consumer = kafka.consumer({ groupId: 'Guilherme', rackId: '1' });
+
+const run = async (strTopic) => {
 	// Consuming
 	await consumer.connect()
-	await consumer.subscribe({ topic: 'Teste_123', fromBeginning: true })
-
+	await consumer.subscribe({ topic: strTopic, fromBeginning: true })
+	console.log(`|*| START ${strTopic} consumer`)
 	await consumer.run({
 		partitionsConsumedConcurrently: 3,
 		eachMessage: async ({ topic, partition, message }) => {
-			console.log(JSON.stringify({
-				partition,
-				offset: message.offset,
-				value: message.value.toString(),
-				datetime: new Date()
-			}));
-			iCount++;
-			if(iCount === 1){
-				console.log('START '+JSON.stringify(new Date()))
+			try {
+				console.log('|Message Partition + Offset + date received| ', partition, message.offset, new Date())
+				console.log('|Key| ', (message.key ? message.key.toString() : ''))
+				console.log('|Value| ', message.value.toString())
+				if(message.key) {
+					const decodedKey = await registry.decode(message.key)
+					console.log('|decodedKey| ',decodedKey)
+				}
+				const decodedValue = await registry.decode(message.value)
+				console.log('|decodedValue| ',decodedValue)
+				console.log('|message| ',message)
+			} catch(e) {
+				console.log('|Error| ', e)
 			}
-			if(iCount === 10000){
-				console.log('STOP '+JSON.stringify(new Date()))
-			}
+			console.log('\n\n\n\n')
 		},
 	});
 }
 
-run().catch(console.error);
+run('ingress-updated').catch(console.error);
