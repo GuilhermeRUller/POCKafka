@@ -57,7 +57,16 @@ function toMessageBuffer(val, type, schemaId, length) {
 	return buf.slice(0, pos);
 }
 
-const run = async (strTopic, boolResend=false) => {
+const run = async (strFile, boolResend=false) => {
+	let obj = require('./payloads/'+ strFile);
+
+
+
+	const strTopic = obj.strTopic;
+	const objKey = obj.objKey;
+	const objMessage = obj.objMessage;
+
+
 	const subjectKey = strTopic + "-key";
 	const subjectValue = strTopic + "-value";
 
@@ -99,9 +108,10 @@ const run = async (strTopic, boolResend=false) => {
 	if (boolResend){
 		setTimeout(function () {
 			// execute script
-			run(strTopic, boolResend).catch(console.error);
+			run(strFile, boolResend).catch(console.error);
 		}, 1000);
 	}
 }
 
-run(strTopic, process.env.RESEND).catch(console.error);
+
+run(process.env.FILE, process.env.RESEND).catch(console.error);
