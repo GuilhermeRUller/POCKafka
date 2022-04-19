@@ -1,9 +1,12 @@
 {
   "dependencies": {
     "@kafkajs/confluent-schema-registry": "^3.2.0",
+    "@ovotech/avro-mock-generator": "^2.0.5",
     "avsc": "^5.7.3",
     "kafka": "^0.2.3",
     "kafka-node": "^5.0.0",
-    "kafkajs": "^1.15.0"
+    "kafkajs": "^1.15.0",
+    "redis": "3.0.2",
+    "util": "^0.12.4"
   }
 }

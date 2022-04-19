@@ -44,7 +44,8 @@ const producer = kafka.producer();
  *
  */
 function toMessageBuffer(val, type, schemaId, length) {
-	var buf = new Buffer.alloc(length || 4024);
+	console.log(length)
+	var buf = new Buffer.alloc(length || 500024);
 	buf[0] = 0; // Magic byte.
 	buf.writeInt32BE(schemaId, 1);
 
@@ -79,7 +80,7 @@ const run = async (strTopic, boolResend=false) => {
 	// const valKey = await typeKey.fromBuffer(bufKey);
 
 	// const bufValue = await typeValue.toBuffer(objMessage); // Encoded buffer.
-	var bufValue = toMessageBuffer(objMessage, typeValue, idValue); // Assuming 1 is your schema's ID.
+	var bufValue = toMessageBuffer(objMessage, typeValue, idValue, (JSON.stringify(objMessage).length + 1000)); // Assuming 1 is your schema's ID.
 	// const valValue = await typeValue.fromBuffer(bufValue);
 
 	// Producing
@@ -88,7 +89,7 @@ const run = async (strTopic, boolResend=false) => {
 			topic: strTopic,
 			compression: CompressionTypes.GZIP,
 			messages: [
-				{ key: bufKey,value: bufValue }
+					{ key: bufKey,value: bufValue }
 				// { value: bufValue }
 			],
 		});
@@ -103,86 +104,4 @@ const run = async (strTopic, boolResend=false) => {
 	}
 }
 
-const objKey = {id: '00000000000'};
-const objMessage = {
-	system: 'teste',
-	account: {
-		businessKey: '00000000000',
-		businessKeyType: 'BR_CPF',
-		recordType: 'ADMINISTRATIVO',
-		recordGroup: 'CLIENTE',
-		name: 'aaaa de aaaa',
-		parent: null
-	},
-	contact: {
-		businessKey: '00000000000',
-		businessKeyType: 'BR_CPF',
-		recordType: 'PESSOA_FISICA',
-		fullName: 'aaaa de aaaa',
-		birthDate: -637,
-		documentNumber: '00000000000',
-		mobilePhone: null,
-		homePhone: '+5500000000000',
-		phone: '+5500000000000',
-		maritalStatus: null,
-		hasOptedOutOfEmail: false,
-		hasOptedOutOfSms: false,
-		hasOptedOutOfWhatsApp: false,
-		alternateEmail: 'aaaa@hotmail.com',
-		gender: 'NAO_INFORMADO',
-		rg: '',
-		preferredEmail: '',
-		preferredPhone: '+5500000000000',
-		ethnicity: null,
-		race: null,
-		religion: null,
-		workEmail: '',
-		workPhone: '+5500000000000',
-		chosenFullName: null,
-		citizenship: null,
-		countryOfOrigin: null,
-		deceased: null,
-		doNotContact: false,
-		dualCitizenship: null,
-		financialAidApplicant: null,
-		specialNeeds: null
-	},
-	address: {
-		addressType: 'Residencial',
-		defaultAddress: null,
-		latestEndDate: null,
-		latestStartDate: null,
-		mailingCity: 'Botafogo',
-		mailingCountry: 'Brasil',
-		mailingPostalCode: '00000000',
-		mailingState: 'RJ',
-		mailingStreet: 'Rua Voluntarios da Patria',
-		district: 'Botafogo',
-		number: '000',
-		complement: 'dado fixo',
-		ibgeCode: '3304557',
-		seasonalEndDay: null,
-		seasonalEndMonth: null,
-		seasonalEndYear: null,
-		seasonalStartDay: null,
-		seasonalStartMonth: null,
-		seasonalStartYear: null
-	},
-	affiliation: {
-		newBusinessKeyObject: null,
-		businessKey: 'CPF_00000000000_OFFER_0000000-00000000-0000000-00000-0000000-0-00_TIMESTAMP_1644795087',
-		businessKeyType: 'CPF_OFERTA',
-		status: 'AGUARDANDO_RESULTADO_SELETIVO',
-		userEnem: false,
-		highSchoolCompletion: 0,
-		ownerId: '00000000000',
-		businessKeyOffer: '0000000-00000000-0000000-00000-0000000-0-00',
-		idSalesChannel: '70',
-		examType: 'PRESENCIAL',
-		businessKeyExam: '00000000-0000-00e0-aad0-f0d000000000',
-		businessKeyTypeAccountOffer: 'BR_CNPJ',
-		businessKeyAccountOffer: '00000000000000'
-	}
-};
-
-run('ingress-updated', process.env.RESEND).catch(console.error);
+run(strTopic, process.env.RESEND).catch(console.error);
